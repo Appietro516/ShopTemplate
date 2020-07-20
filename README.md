@@ -1,12 +1,8 @@
-# Developing a Single Page App with Flask and Vue.js
+# Online shop template
 
-### Want to learn how to build this?
+Andrew Raftovich
 
-Check out the [post](https://testdriven.io/developing-a-single-page-app-with-flask-and-vuejs).
-
-## Want to use this project?
-
-1. Fork/Clone
+## Build for development
 
 1. Run the server-side Flask app in one terminal window:
 
@@ -20,7 +16,7 @@ Check out the [post](https://testdriven.io/developing-a-single-page-app-with-fla
 
     Navigate to [http://localhost:5000](http://localhost:5000)
 
-1. Run the client-side Vue app in a different terminal window:
+2. Run the client-side Vue app in a different terminal window:
 
     ```sh
     $ cd client
@@ -29,3 +25,7 @@ Check out the [post](https://testdriven.io/developing-a-single-page-app-with-fla
     ```
 
     Navigate to [http://localhost:8080](http://localhost:8080)
+
+## Build with
+
+Flask, Vue.js, Postgresql

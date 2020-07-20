@@ -1,0 +1,42 @@
+<template>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-10">
+        <h1>Thanks for purchasing! - {{ this.book }}</h1>
+        <hr><br>
+        <router-link to="/" class="btn btn-primary btn-sm">Back Home</router-link>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+import { mapState } from 'vuex';
+
+export default {
+  data() {
+    return {
+      book: '',
+    };
+  },
+  computed: {
+    ...mapState(['serverName']),
+  },
+  methods: {
+    getChargeInfo() {
+      const path = `${this.serverName}/charge/${this.$route.params.id}`;
+      axios.get(path)
+        .then((res) => {
+          this.book = res.data.charge.description;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
+  },
+  created() {
+    this.getChargeInfo();
+  },
+};
+</script>
