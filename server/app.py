@@ -1,10 +1,15 @@
 import os
 import stripe
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Blueprint, current_app
 from flask_cors import CORS
 import settings
+import json
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError # Not setup correctly
+from datetime import datetime, timedelta
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+import jwt
 
 # configuration
 DEBUG = True
@@ -15,7 +20,12 @@ app.config.from_object(__name__)
 db = SQLAlchemy(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DB_URL
 
-# --------------------- DATABASE TABLES --------------------- #
+# enable CORS
+CORS(app, resources={r'/*': {'origins': '*'}})
+
+#***************************************************
+#              DATABASE TABLES                     *
+#***************************************************
 '''
     Product class holds all products.
 '''
@@ -25,6 +35,7 @@ class Product(db.Model):
     price = db.Column(db.Float, unique=False)
     description = db.Column(db.String(255), unique=False)
     image = db.Column(db.String(100), unique=False)
+    quantity = db.Column(db.Integer, unique=False)
 
     def __init__(self, name, price, description, image):
         self.name = name
@@ -40,26 +51,107 @@ class Product(db.Model):
 '''
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(15))
-    password = db.Column(db.String(15), unique=False)
+    email = db.Column(db.String(120), unique=False, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self, email, password):
+        self.email = email
+        self.password = generate_password_hash(password, method='sha256')
 
-    def __repr__(self):
-        return f'<username {self.username}>'
+    @classmethod
+    def authenticate(cls, **kwargs):
+        email = kwargs.get('email')
+        password = kwargs.get('password')
+
+        if not email or not password:
+            return None
+
+        user = cls.query.filter_by(email=email).first()
+        if not user or not check_password_hash(user.password, password):
+            return None
+
+        return user
+
+    def to_dict(self):
+        return dict(id=self.id, email=self.email)
+
+#***************************************************
+#              AUTHENTICATION                      *
+#***************************************************
+
+def token_required(f):
+    @wraps(f)
+    def _verify(*args, **kwargs):
+        auth_headers = request.json['authorization'].split()
+
+        invalid_msg = {
+            'message': 'Invalid token',
+            'authenticated': False
+        }
+
+        expired_msg = {
+            'message': 'Expired session. Reauthentication required',
+            'authenticated': False
+        }
+
+        if len(auth_headers) != 2:
+            return jsonify(invalid_msg), 401
+        print(auth_headers)
+        try:
+            token = auth_headers[1]
+            data = jwt.decode(token, settings.SECRET_KEY)
+            user = User.query.filter_by(email=data['sub']).first()
+            if not user:
+                raise RuntimeError('User not found')
+
+            return f(user, *args, **kwargs)
+        except jwt.ExpiredSignatureError:
+            return jsonify(expired_msg), 401
+        except (jwt.InvalidTokenError, Exception) as e:
+            print(e)
+            return jsonify(invalid_msg), 401
+    
+    return _verify
+
+#***************************************************
+#                    ROUTES                        *
+#***************************************************
+
+@app.route('/register', methods=['POST'])
+@token_required
+def register(current_user):
+    data = request.get_json()
+    user = User(**data)
+    db.session.add(user)
+    db.session.commit()
+    return jsonify(user.to_dict()), 201
 
 
-# enable CORS
-CORS(app, resources={r'/*': {'origins': '*'}})
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.authenticate(**data)
+    print(data)
+    if not user:
+        return jsonify({
+            'status': 'failure',
+            'message': 'Invalid credentials'
+        }), 401
 
-
-# --------------------- FOOD SHOP ROUTES --------------------- #
+    token = jwt.encode({
+        'sub': user.email,
+        'iat': datetime.utcnow(),
+        'exp': datetime.utcnow() + timedelta(minutes=1)},
+        settings.SECRET_KEY)
+    return jsonify({
+        'status': 'success',
+        'token': token.decode('UTF-8')
+        }), 200
 
 
 @app.route('/products/new', methods=['POST'])
-def upload_product():
+@token_required
+def upload_product(current_user):
     name = request.json['name']
     price = request.json['price']
     description = request.json.get('description', None)
@@ -72,18 +164,21 @@ def upload_product():
         'status': 'success',
         'message': 'item inserted into database'
     }
-    return jsonify(response_object), 200
+    return jsonify(response_object), 201
 
 
-@app.route('/products/<int:id>/update', methods=['PUT', 'DELETE'])
-def update_product(id):
+@app.route('/products/update', methods=['PUT', 'DELETE'])
+@token_required
+def update_product(current_user):
     if request.method == 'PUT':
+        id = request.json.get('id', None)
         name = request.json.get('name', None)
         price = request.json.get('price', None)
         description = request.json.get('description', None)
         image = request.json.get('image', None)
         
-        if not name and not price and not description and not image:
+        if (not id and not name and not price 
+            and not description and not image):
             response_object = {
                 'status': 'failure',
                 'message': 'Empty request'
@@ -205,7 +300,9 @@ def get_product(id):
         return jsonify(response_object), 500
 
 
-# --------------------- CHECKOUT ROUTES --------------------- #
+#***************************************************
+#              CHECKOUT ROUTES                     *
+#***************************************************
 
 
 @app.route('/charge', methods=['POST'])
@@ -240,7 +337,7 @@ def create_charge():
         return jsonify(response_object), 500
 
 
-@app.route('/charge/<charge_id>')
+@app.route('/charge/<charge_id>', methods=['GET'])
 def get_charge(charge_id):
     stripe.api_key = settings.STRIPE_KEY
     response_object = {
@@ -249,9 +346,13 @@ def get_charge(charge_id):
     }
     return jsonify(response_object), 200
 
-
-# --------------------- START SERVER --------------------- #
+#***************************************************
+#                 START SERVER                     *
+#***************************************************
 
 if __name__ == '__main__':
     #db.create_all()
+    #user = User('admin', 'Admin')
+    #db.session.add(user)
+    #db.session.commit()
     app.run()

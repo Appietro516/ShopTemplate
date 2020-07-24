@@ -4,17 +4,26 @@
       <div class="col-sm-10">
         <h1>Product Management</h1>
         <hr><br><br>
-        <alert :message=message v-if="showMessage"></alert>
+        <b-alert
+          :show="showMessage"
+          variant="success"
+        >
+          {{ message }}
+        </b-alert>
+        <b-alert 
+          :show="showErrorMessage"
+          variant="danger"
+        >
+          {{ errorMessage }}
+        </b-alert>
         <button type="button" class="btn btn-success btn-sm" v-b-modal.product-modal>Add Product</button>
         <br><br>
         <table class="table table-hover">
           <thead>
             <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Description</th>
-              <th scope="col">Price</th>
-              <th scope="col">Image</th>
-              <th></th>
+              <th v-for="key in productKeys" v-bind:key="key.name">
+                {{ key.name }}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -25,7 +34,8 @@
               <td><img 
                     v-bind:src="product.image"
                     :style="{ height: '50px', width: '80px' }"
-                  /></td>
+                  />
+              </td>
               <td>
                 <div class="btn-group" role="group">
                   <button type="button"
@@ -52,47 +62,25 @@
             title="Add a new Product"
             hide-footer>
       <b-form @submit="onSubmit" @reset="onReset" class="w-100">
-        <b-form-group id="form-title-group"
-                      label="Name:"
-                      label-for="form-title-input">
-            <b-form-input id="form-title-input"
-                          type="text"
-                          v-model="addProductForm.name"
-                          required
-                          placeholder="Enter Name">
-            </b-form-input>
-        </b-form-group>
-        <b-form-group id="form-author-group"
-                      label="Description:"
-                      label-for="form-author-input">
-          <b-form-input id="form-author-input"
-                        type="text"
-                        v-model="addProductForm.description"
-                        required
-                        placeholder="Enter Description">
+
+        <b-form-group 
+          v-for="item in productKeys"
+          v-bind:key="item.name"
+          :id="`form-${item.name}-group`"
+          :label="item.name"
+          :label-for="`form-${item.name}-input`"
+        >
+          <b-form-input
+            :id="`form-${item.name}-input`"
+            :type="item.type"
+            :step="item.step"
+            v-model="addProductForm[item.name]"
+            required 
+            :placeholder="item.message"
+          >
           </b-form-input>
         </b-form-group>
-        <b-form-group id="form-price-group"
-                      label="Purchase price:"
-                      label-for="form-price-input">
-          <b-form-input id="form-price-input"
-                        type="number"
-                        step="0.01"
-                        v-model="addProductForm.price"
-                        required
-                        placeholder="Enter price">
-          </b-form-input>
-        </b-form-group>
-        <b-form-group id="form-author-group"
-                      label="Image URL:"
-                      label-for="form-author-input">
-          <b-form-input id="form-author-input"
-                        type="text"
-                        v-model="addProductForm.image"
-                        required
-                        placeholder="Enter a valid image URL">
-          </b-form-input>
-        </b-form-group>
+
         <b-button-group>
           <b-button type="submit" variant="primary">Submit</b-button>
           <b-button type="reset" variant="danger">Reset</b-button>
@@ -105,47 +93,25 @@
              title="Update"
              hide-footer>
       <b-form @submit="onSubmitUpdate" @reset="onResetUpdate" class="w-100">
-        <b-form-group id="form-title-edit-group"
-                      label="Name:"
-                      label-for="form-title-edit-input">
-          <b-form-input id="form-title-edit-input"
-                        type="text"
-                        v-model="editForm.name"
-                        required
-                        placeholder="Enter name">
+
+        <b-form-group 
+          v-for="item in productKeys"
+          v-bind:key="item.name"
+          :id="`form-${item.name}-edit-group`"
+          :label="item.name"
+          :label-for="`form-${item.name}-edit-input`"
+        >
+          <b-form-input
+            :id="`form-${item.name}-edit-input`"
+            :type="item.type"
+            :step="item.step"
+            v-model="editForm[item.name]"
+            required 
+            :placeholder="item.message"
+          >
           </b-form-input>
         </b-form-group>
-        <b-form-group id="form-author-edit-group"
-                      label="Description:"
-                      label-for="form-author-edit-input">
-          <b-form-input id="form-author-edit-input"
-                        type="text"
-                        v-model="editForm.description"
-                        required
-                        placeholder="Enter Description">
-          </b-form-input>
-        </b-form-group>
-        <b-form-group id="form-price-edit-group"
-                      label="Purchase price:"
-                      label-for="form-price-edit-input">
-          <b-form-input id="form-price-edit-input"
-                        type="number"
-                        step="0.01"
-                        v-model="editForm.price"
-                        required
-                        placeholder="Enter price">
-          </b-form-input>
-        </b-form-group>
-        <b-form-group id="form-author-edit-group"
-                      label="Image URL:"
-                      label-for="form-author-edit-input">
-          <b-form-input id="form-author-edit-input"
-                        type="text"
-                        v-model="editForm.image"
-                        required
-                        placeholder="Enter a valid image URL">
-          </b-form-input>
-        </b-form-group>
+
         <b-button-group>
           <b-button type="submit" variant="primary">Update</b-button>
           <b-button type="reset" variant="danger">Cancel</b-button>
@@ -158,11 +124,34 @@
 <script>
 import axios from 'axios';
 import Alert from './Alert.vue';
-import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 
 export default {
   data() {
     return {
+      productKeys: [
+        {
+          'name': 'name',
+          'type': 'text',
+          'message': 'Enter name',
+        },
+        {
+          'name': 'description',
+          'type': 'text',
+          'message': 'Enter Description',
+        },
+        {
+          'name': 'price',
+          'type': 'number',
+          'step': '0.01',
+          'message': 'Enter price',
+        },
+        {
+          'name': 'image',
+          'type': 'text',
+          'message': 'Enter a valid image URL',
+        },
+      ],
       products: [],
       addProductForm: {
         name: '',
@@ -172,6 +161,8 @@ export default {
       },
       message: '',
       showMessage: false,
+      errorMessage: '',
+      showErrorMessage: false,
       editForm: {
         id: '',
         name: '',
@@ -188,6 +179,12 @@ export default {
     ...mapState(['serverName']),
   },
   methods: {
+    ...mapActions([
+      'login',
+      'changeProduct',
+      'insertProduct',
+      'deleteProduct',
+    ]),
     getProducts() {
       const path = `${this.serverName}/products`;
       axios.get(path)
@@ -197,19 +194,20 @@ export default {
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error);
+          this.tableError = true;
+          this.tableMessage = error.message;
         });
     },
     addProduct(payload) {
-      const path = `${this.serverName}/products/new`;
-      axios.post(path, payload)
+      this.insertProduct(payload)
         .then(() => {
           this.getProducts();
           this.message = 'Product added!';
           this.showMessage = true;
         })
         .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
+          this.errorMessage = error.data.message;
+          this.showErrorMessage = true;
           this.getProducts();
         });
     },
@@ -229,6 +227,7 @@ export default {
       evt.preventDefault();
       this.$refs.addProductModal.hide();
       const payload = {
+        id: this.addProductForm.id,
         name: this.addProductForm.name,
         price: this.addProductForm.price,
         description: this.addProductForm.description,
@@ -249,6 +248,7 @@ export default {
       evt.preventDefault();
       this.$refs.editProductModal.hide();
       const payload = {
+        id: this.editForm.id,
         name: this.editForm.name,
         price: this.editForm.price,
         description: this.editForm.description,
@@ -257,16 +257,16 @@ export default {
       this.updateProduct(payload, this.editForm.id);
     },
     updateProduct(payload, id) {
-      const path = `${this.serverName}/products/${id}/update`;
-      axios.put(path, payload)
+      this.changeProduct(payload)
         .then(() => {
           this.getProducts();
           this.message = 'Product updated!';
           this.showMessage = true;
         })
         .catch((error) => {
-          // eslint-disable-next-line
-          console.error(error);
+          console.log(error.response.data.message)
+          this.errorMessage = error.response.data.message;
+          this.showErrorMessage = true;
           this.getProducts();
         });
     },
@@ -277,16 +277,15 @@ export default {
       this.getProducts();
     },
     removeProduct(id) {
-      const path = `${this.serverName}/products/${id}/update`;
-      axios.delete(path)
+      this.deleteProduct(id)
         .then(() => {
           this.getProducts();
           this.message = 'Product removed!';
           this.showMessage = true;
         })
         .catch((error) => {
-          // eslint-disable-next-line
-          console.error(error);
+          this.errorMessage = error.data.message;
+          this.showErrorMessage = true;
           this.getProducts();
         });
     },
