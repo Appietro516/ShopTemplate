@@ -13,7 +13,7 @@ This project is an active working shop with the ability to modify items & view p
 | Edit     | /dashboard/products  |
 | Login    | /dashboard/login     |
 | Logout   | /dashboard/logout    |
-| Checkout | /order/<product: id> |
+| Checkout | /order/<int: id> |
 
 ## RESTful API routes
 

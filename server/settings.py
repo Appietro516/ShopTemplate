@@ -15,5 +15,5 @@ DB_URL = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=POSTGRES_USE
 # Shhhhhh its a secret
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-USER_NAME = os.getenv("USER_NAME")
+EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")

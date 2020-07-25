@@ -3,72 +3,20 @@ import stripe
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import settings
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
-from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import jwt
-import sys 
+import sys
+import database.Models as Model
+import database.Products as Products
+import database.User as Users
 
 DEBUG = True
 app = Flask(__name__, static_folder='static')
 app.config.from_object(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DB_URL
-db = SQLAlchemy(app)
+Model.db.init_app(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
-
-#***************************************************
-#              DATABASE TABLES                     *
-#***************************************************
-'''
-    Product class holds all products.
-'''
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=False)
-    price = db.Column(db.Float, unique=False)
-    description = db.Column(db.String(255), unique=False)
-    image = db.Column(db.String(100), unique=False)
-    quantity = db.Column(db.Integer, unique=False)
-
-    def __init__(self, name, price, description, image):
-        self.name = name
-        self.price = price
-        self.description = description
-        self.image = image
-    
-    def __repr__(self):
-        return f'<id {self.id}>'
-
-'''
-    User class is used to hold admin credentials for modifying shop.
-'''
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=False, nullable=False)
-    password = db.Column(db.String(255), nullable=False)
-
-    def __init__(self, email, password):
-        self.email = email
-        self.password = generate_password_hash(password, method='sha256')
-
-    @classmethod
-    def authenticate(cls, **kwargs):
-        email = kwargs.get('email')
-        password = kwargs.get('password')
-
-        if not email or not password:
-            return None
-
-        user = cls.query.filter_by(email=email).first()
-        if not user or not check_password_hash(user.password, password):
-            return None
-
-        return user
-
-    def to_dict(self):
-        return dict(id=self.id, email=self.email)
 
 #***************************************************
 #              AUTHENTICATION                      *
@@ -94,10 +42,8 @@ def token_required(f):
         try:
             token = auth_headers[1]
             data = jwt.decode(token, settings.SECRET_KEY)
-            user = User.query.filter_by(email=data['sub']).first()
-            if not user:
+            if not Users.isValidUser(data['sub']):
                 raise RuntimeError('User not found')
-
             return f(*args, **kwargs)
         except jwt.ExpiredSignatureError:
             return jsonify(expired_msg), 401
@@ -108,13 +54,13 @@ def token_required(f):
     return _verify
 
 #***************************************************
-#                    ROUTES                        *
+#              AUTHENTICATE USER                   *
 #***************************************************
 
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    user = User.authenticate(**data)
+    user = Users.authenticateUser(**data)
     if not user:
         return jsonify({
             'status': 'failure',
@@ -131,6 +77,14 @@ def login():
         'token': token.decode('UTF-8')
         }), 200
 
+#***************************************************
+#                PRODUCT ROUTES                    *
+#***************************************************
+
+@app.route('/ping', methods=['POST'])
+@token_required
+def ping():
+    return jsonify({'message': 'pong'})
 
 @app.route('/products/new', methods=['POST'])
 @token_required
@@ -140,9 +94,8 @@ def upload_product():
     description = request.json.get('description', None)
     image = request.json.get('image', None)
     
-    product = Product(name, price, description, image)
-    db.session.add(product)
-    db.session.commit()
+    Products.addProduct(name, price, description, image)
+
     response_object = {
         'status': 'success',
         'message': 'item inserted into database'
@@ -154,13 +107,12 @@ def upload_product():
 @token_required
 def update_product(id):
     if request.method == 'PUT':
-        #id = request.json.get('id', None)
         name = request.json.get('name', None)
         price = request.json.get('price', None)
         description = request.json.get('description', None)
         image = request.json.get('image', None)
         
-        if (not id and not name and not price 
+        if (not name and not price
             and not description and not image):
             response_object = {
                 'status': 'failure',
@@ -168,48 +120,36 @@ def update_product(id):
             }
             return jsonify(response_object), 400
 
-        product = Product.query.get(id)
-
-        if not product:
+        if not Products.isValidProduct(id):
             response_object = {
                 'status': 'failure',
                 'message': 'invalid product id'
             }
             return jsonify(response_object), 400
 
-        if name:
-            product.name = name
-        if price:
-            product.price = price
-        if description:
-            product.description = description
-        if image:
-            product.image = image
+        Products.updateProduct(id, name, price, description, image)
 
-        db.session.commit()
         response_object = {
             'status': 'success',
             'message': 'item was updated in table'
         }
         return jsonify(response_object), 200
     if request.method == 'DELETE':
-        try:
-            if not Product.query.get(id):
-                raise SQLAlchemyError
 
-            Product.query.filter_by(id=id).delete()
-            db.session.commit()
+        if not Products.isValidProduct(id):
             response_object = {
-                'status': 'success',
-                'message': 'item was deleted from table'
+                'status': 'failure',
+                'message': 'Item not in table'
             }
-            return jsonify(response_object), 200
-        except SQLAlchemyError:
-            response_object = {
-            'status': 'failure',
-            'message': 'Item not in table'
+            return jsonify(response_object), 400
+
+        Products.deleteProduct(id)
+
+        response_object = {
+            'status': 'success',
+            'message': 'item was deleted from table'
         }
-        return jsonify(response_object), 400
+        return jsonify(response_object), 200
 
 
 @app.route('/products', methods=['GET'])
@@ -220,10 +160,14 @@ def get_products():
             'products': []
         }
 
-        products = Product.query.all()
+        products = Products.getAll()
 
         if not products:
-            raise SQLAlchemyError
+            response_object = {
+                'status': 'success',
+                'message': 'No content available'
+            }
+            return jsonify(response_object), 204
 
         for item in products:
             response_object['products'].append({
@@ -235,12 +179,6 @@ def get_products():
             })
 
         return jsonify(response_object), 200
-    except SQLAlchemyError:
-        response_object = {
-            'status': 'failure',
-            'message': 'Empty table or invalid connection'
-        }
-        return jsonify(response_object), 500
     except:
         response_object = {
             'status': 'failure',
@@ -252,9 +190,13 @@ def get_products():
 @app.route('/products/<int:id>', methods=['GET'])
 def get_product(id):
     try:
-        product = Product.query.get(id)
+        product = Products.get(id)
         if not product:
-            raise SQLAlchemyError
+            response_object = {
+                'status': 'failure',
+                'message': 'Invalid product id'
+            }
+            return jsonify(response_object), 400
 
         response_object = {
             'status': 'success',
@@ -267,14 +209,6 @@ def get_product(id):
             }
         }
         return jsonify(response_object), 200
-             
-    except SQLAlchemyError:
-        response_object = {
-            'status': 'failure',
-            'message': 'Invalid product id'
-        }
-        return jsonify(response_object), 400
-
     except:
         response_object = {
             'status': 'failure',
@@ -282,11 +216,9 @@ def get_product(id):
         }
         return jsonify(response_object), 500
 
-
 #***************************************************
 #              CHECKOUT ROUTES                     *
 #***************************************************
-
 
 @app.route('/charge', methods=['POST'])
 def create_charge():
@@ -335,11 +267,9 @@ def get_charge(charge_id):
 
 if __name__ == '__main__':
 
+    # First time setup
     if len(sys.argv) > 1 and sys.argv[1] == 'setup':
-        # Setup database with single user
-        db.create_all()
-        user = User(settings.USER_NAME, settings.PASSWORD)
-        db.session.add(user)
-        db.session.commit()
+        Model.initializeDB()
+        Users.signup(settings.EMAIL, settings.PASSWORD)
 
     app.run()
