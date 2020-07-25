@@ -1,9 +1,15 @@
 <template>
   <div class="container">
+    <link rel="stylesheet" 
+        href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" 
+        integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" 
+        crossorigin="anonymous">
+    <sidebar-menu :menu="menu" />
+    <h1>Products</h1>
+    <hr><br><br>
     <div class="row">
+      
       <div class="col-sm-10">
-        <h1>Product Management</h1>
-        <hr><br><br>
         <b-alert
           :show="showMessage"
           variant="success"
@@ -129,6 +135,33 @@ import { mapState, mapActions } from 'vuex';
 export default {
   data() {
     return {
+       menu: [
+        {
+          header: true,
+          title: 'Main Navigation',
+          hiddenOnCollapse: true
+        },
+        {
+          href: '/',
+          title: 'Store',
+          icon: 'fas fa-store',
+        },
+        {
+          href: '/Dashboard',
+          title: 'Dashboard',
+          icon: 'fas fa-chart-line',
+        },
+        {
+          href: '/Dashboard/products',
+          title: 'Products',
+          icon: 'far fa-edit',
+        },
+        {
+          href: '/dashboard/logout',
+          title: 'Logout',
+          icon: 'fas fa-sign-out-alt',
+        },
+      ],
       productKeys: [
         {
           'name': 'name',
@@ -192,10 +225,8 @@ export default {
           this.products = res.data.products;
         })
         .catch((error) => {
-          // eslint-disable-next-line
-          console.error(error);
-          this.tableError = true;
-          this.tableMessage = error.message;
+          this.showErrorMessage = true;
+          this.errorMessage = error.response.data.message;
         });
     },
     addProduct(payload) {
@@ -206,7 +237,7 @@ export default {
           this.showMessage = true;
         })
         .catch((error) => {
-          this.errorMessage = error.data.message;
+          this.errorMessage = error.response.data.message;
           this.showErrorMessage = true;
           this.getProducts();
         });
@@ -257,14 +288,13 @@ export default {
       this.updateProduct(payload, this.editForm.id);
     },
     updateProduct(payload, id) {
-      this.changeProduct(payload)
+      this.changeProduct({ payload, id})
         .then(() => {
           this.getProducts();
           this.message = 'Product updated!';
           this.showMessage = true;
         })
         .catch((error) => {
-          console.log(error.response.data.message)
           this.errorMessage = error.response.data.message;
           this.showErrorMessage = true;
           this.getProducts();
@@ -277,14 +307,14 @@ export default {
       this.getProducts();
     },
     removeProduct(id) {
-      this.deleteProduct(id)
+      this.deleteProduct(id) 
         .then(() => {
           this.getProducts();
           this.message = 'Product removed!';
           this.showMessage = true;
         })
         .catch((error) => {
-          this.errorMessage = error.data.message;
+          this.errorMessage = error.response.data.message;
           this.showErrorMessage = true;
           this.getProducts();
         });

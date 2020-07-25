@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios';
+import createPersistedState from "vuex-persistedstate";
 
 Vue.use(Vuex);
 
@@ -15,9 +16,15 @@ export default new Vuex.Store({
   state: {
     shoppingCart: [],
     serverName: 'http://localhost:5000',
-    jwt: '', 
+    jwt: '',
     tokenType: 'Bearer',
   },
+  /***********************************************
+   *            SESSION STORAGE                  *
+   ***********************************************/
+  plugins: [createPersistedState({
+    storage: window.sessionStorage
+  })],
   /***********************************************
    *                MUTATIONS                    *
    ***********************************************/
@@ -40,9 +47,11 @@ export default new Vuex.Store({
     setEmail: function (state, email) {
       state.email = email;
     },
-    setJwtToken: function (state, payload)  {
-      state.token = payload.jwt.token;
-      state.jwt = payload.jwt;
+    setToken: function (state, payload)  {
+      state.jwt = payload.jwt.token;
+    },
+    clearToken: function(state) {
+      state.jwt = '';
     }
   },
   /***********************************************
@@ -55,35 +64,38 @@ export default new Vuex.Store({
     register: function({ commit, state }, userData) {
       return axios.post(`${state.serverName}/register`, userData);
     },
-    login: function ({ commit, state }, userData) {
+    postLogin: function ({ commit, state }, userData) {
+      console.log("post")
       return axios.post(`${state.serverName}/login`, userData)
-        .then(res => commit('setJwtToken', { jwt: res.data }))
-        .catch(error => {
-          console.log('Error Authenticating ', error);
-        });
+        .then(res => commit('setToken', { jwt: res.data }))
     },
     setTokenStr: function({ state }, payload) {
       payload.authorization = `${state.tokenType}: ${state.jwt}`;
+      console.log(payload)
     },
-    changeProduct: function({ state, dispatch }, payload) {
+    changeProduct: function({ state, dispatch }, {payload, id}) {
       dispatch('setTokenStr', payload);
-      return axios.put(`${state.serverName}/products/update`, payload);
+      return axios.put(`${state.serverName}/products/${id}/update`, payload);
     },
     insertProduct: function({ state, dispatch }, payload) {
       dispatch('setTokenStr', payload);
       return axios.post(`${state.serverName}/products/new`, payload);
     },
     deleteProduct: function({ state, dispatch }, id) {
-      const data = {'id': id}
+      const data = {}
       dispatch('setTokenStr', data)
-      return axios.delete(`${state.serverName}/products/update`);
+      return axios.delete(`${state.serverName}/products/${id}/update`, {data: data});
+    },
+    clearToken: function({ state, commit }) {
+      commit('clearToken');
     }
   },
   /***********************************************
    *                GETTERS                      *
    ***********************************************/
   getters: {
-    isAuthenticated: function ({ state }) {
+    isAuthenticated: function (state) {
+      console.log("jwt: " + state.jwt)
       if (!state.jwt || state.jwt.split('.').length < 3) {
         return false;
       }

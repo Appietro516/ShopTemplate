@@ -1,26 +1,21 @@
 import os
 import stripe
-from flask import Flask, jsonify, request, Blueprint, current_app
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import settings
-import json
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import SQLAlchemyError # Not setup correctly
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import jwt
+import sys 
 
-# configuration
 DEBUG = True
-
-# instantiate the app
 app = Flask(__name__, static_folder='static')
 app.config.from_object(__name__)
-db = SQLAlchemy(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DB_URL
-
-# enable CORS
+db = SQLAlchemy(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
 
 #***************************************************
@@ -85,7 +80,7 @@ def token_required(f):
         auth_headers = request.json['authorization'].split()
 
         invalid_msg = {
-            'message': 'Invalid token',
+            'message': 'Invalid credentials. login required',
             'authenticated': False
         }
 
@@ -96,7 +91,6 @@ def token_required(f):
 
         if len(auth_headers) != 2:
             return jsonify(invalid_msg), 401
-        print(auth_headers)
         try:
             token = auth_headers[1]
             data = jwt.decode(token, settings.SECRET_KEY)
@@ -104,7 +98,7 @@ def token_required(f):
             if not user:
                 raise RuntimeError('User not found')
 
-            return f(user, *args, **kwargs)
+            return f(*args, **kwargs)
         except jwt.ExpiredSignatureError:
             return jsonify(expired_msg), 401
         except (jwt.InvalidTokenError, Exception) as e:
@@ -117,21 +111,10 @@ def token_required(f):
 #                    ROUTES                        *
 #***************************************************
 
-@app.route('/register', methods=['POST'])
-@token_required
-def register(current_user):
-    data = request.get_json()
-    user = User(**data)
-    db.session.add(user)
-    db.session.commit()
-    return jsonify(user.to_dict()), 201
-
-
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     user = User.authenticate(**data)
-    print(data)
     if not user:
         return jsonify({
             'status': 'failure',
@@ -141,7 +124,7 @@ def login():
     token = jwt.encode({
         'sub': user.email,
         'iat': datetime.utcnow(),
-        'exp': datetime.utcnow() + timedelta(minutes=1)},
+        'exp': datetime.utcnow() + timedelta(minutes=30)},
         settings.SECRET_KEY)
     return jsonify({
         'status': 'success',
@@ -151,7 +134,7 @@ def login():
 
 @app.route('/products/new', methods=['POST'])
 @token_required
-def upload_product(current_user):
+def upload_product():
     name = request.json['name']
     price = request.json['price']
     description = request.json.get('description', None)
@@ -167,11 +150,11 @@ def upload_product(current_user):
     return jsonify(response_object), 201
 
 
-@app.route('/products/update', methods=['PUT', 'DELETE'])
+@app.route('/products/<int:id>/update', methods=['PUT', 'DELETE'])
 @token_required
-def update_product(current_user):
+def update_product(id):
     if request.method == 'PUT':
-        id = request.json.get('id', None)
+        #id = request.json.get('id', None)
         name = request.json.get('name', None)
         price = request.json.get('price', None)
         description = request.json.get('description', None)
@@ -351,8 +334,12 @@ def get_charge(charge_id):
 #***************************************************
 
 if __name__ == '__main__':
-    #db.create_all()
-    #user = User('admin', 'Admin')
-    #db.session.add(user)
-    #db.session.commit()
+
+    if len(sys.argv) > 1 and sys.argv[1] == 'setup':
+        # Setup database with single user
+        db.create_all()
+        user = User(settings.USER_NAME, settings.PASSWORD)
+        db.session.add(user)
+        db.session.commit()
+
     app.run()
