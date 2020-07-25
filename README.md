@@ -2,12 +2,17 @@
 
 Andrew Raftovich
 
+This project is an active working shop with the ability to modify items & view product analytics on an admin panel located on the frontend
+
 ## Shop routes
 
-| Page     | Route  |
-| ------   | ------ |
-| Home     | /      |
-| Admin    | /Admin |
+| Page      | Route  |
+| ------    | ------ |
+| Home      | /      |
+| Analytics | /dashboard |
+| Edit     | /dashboard/products  |
+| Login    | /dashboard/login     |
+| Logout   | /dashboard/logout    |
 | Checkout | /order/<product: id> |
 
 ## RESTful API routes
@@ -15,7 +20,12 @@ Andrew Raftovich
 | Function | Route |
 | ------ | ------ |
 | `GET` all products | /products |
-| `GET` single product | /products/<product: id> |
+| `GET` a single product | /products/<int: id> |
+| `POST` new product | /products/new |
+| `PUT` `DELETE` update products | /products/<int: id>/update  |
+| `POST` make payment | /charge |
+| `GET` check payment | /charge/<charge_id> |
+| `POST` login | /login |
 
 ## Build for development
 
@@ -35,6 +45,7 @@ Andrew Raftovich
 
     ```sh
     $ cd client
+    $ npm install
     $ npm run serve
     ```
 

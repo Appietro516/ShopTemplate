@@ -5,10 +5,6 @@ import createPersistedState from "vuex-persistedstate";
 
 Vue.use(Vuex);
 
-/**
- *  NOTE: USE VUEX-PERSISEDSTATE TO SAVE ORDERS IN CACHE
- */
-
 export default new Vuex.Store({
   /***********************************************
    *                  STATE                      *
@@ -100,7 +96,7 @@ export default new Vuex.Store({
         return false;
       }
       const data = JSON.parse(atob(state.jwt.split('.')[1]));
-      const exp = new Date(data.exp * 1000); // JS deals with dates in milliseconds since epoch
+      const exp = new Date(data.exp * 1000);
       const now = new Date();
       return now < exp;
     },

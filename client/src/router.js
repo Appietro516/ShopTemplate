@@ -57,10 +57,12 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
+
   if(to.name === 'Dashboard' || to.name === 'Edit') {
     if(!store.getters.isAuthenticated) next({ name: 'Login'});
-  } else if (to.name === 'Logout' && store.getters.isAuthenticated) {
-    store.dispatch("clearToken");
+
+  } else if (to.name === 'Logout') {
+    if (store.getters.isAuthenticated) store.dispatch("clearToken");
     next({ name: 'Products'})
   }
   next()
