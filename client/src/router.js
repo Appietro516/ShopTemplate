@@ -21,32 +21,32 @@ const router = new Router({
       component: Products,
     },
     {
-      path:'/order/:id',
+      path:'/Order/:id',
       name: 'Order',
       component: Order,
     },
     {
-      path: '/complete/:id',
+      path: '/Complete/:id',
       name: '/OrderComplete',
       component: OrderComplete,
     },
     {
-      path:'/dashboard',
+      path:'/Dashboard',
       name: 'Dashboard',
       component: Dashboard,
     },
     {
-      path:'/dashboard/products',
+      path:'/Dashboard/Products',
       name: 'Edit',
       component: ProductManager,
     },
     {
-      path:'/dashboard/login',
+      path:'/Dashboard/Login',
       name: 'Login',
       component: Login,
     },
     {
-      path:'/dashboard/logout',
+      path:'/Dashboard/Logout',
       name: 'Logout',
     },
     {
@@ -59,11 +59,17 @@ const router = new Router({
 router.beforeEach((to, from, next) => {
 
   if(to.name === 'Dashboard' || to.name === 'Edit') {
-    if(!store.getters.isAuthenticated) next({ name: 'Login'});
+    store.dispatch('checkAuthenticated')
+      .then((authenticated) => {
+        if (!authenticated) next({ name: 'Login'});
+      });
 
   } else if (to.name === 'Logout') {
-    if (store.getters.isAuthenticated) store.dispatch("clearToken");
-    next({ name: 'Products'})
+    store.dispatch('checkAuthenticated')
+      .then((authenticated) => {
+        if (authenticated) store.dispatch("clearToken");
+        next({ name: 'Products'})
+      });
   }
   next()
 });

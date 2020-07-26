@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions } from 'vuex'
 
 export default {
   data() {
@@ -21,11 +21,8 @@ export default {
       },
     };
   },
-  computed: {
-    ...mapGetters(['isAuthenticated'])
-  },
   methods: {
-    ...mapActions(['postLogin']),
+    ...mapActions(['postLogin', 'checkAuthenticated']),
     login() {
       this.postLogin(this.input)
         .then(() => {
@@ -33,14 +30,16 @@ export default {
         })
         .catch((error) => {
           console.log(error)
-          console.log('lol dumb')
         })
     },
   },
   created() {
-    if(this.isAuthenticated) {
-      this.$router.push({ name: 'Dashboard'})
-    }
-  }
+    this.checkAuthenticated()
+      .then((authenticated) => {
+        if(authenticated) {
+          this.$router.push({ name: 'Dashboard'})
+        }
+      });
+  },
 };
 </script>

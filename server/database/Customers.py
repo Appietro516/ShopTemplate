@@ -3,7 +3,6 @@ import settings
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 
-
 '''
     Password is optional, except users with no password are unable to checkout
     as a returning user and unable to access their account.

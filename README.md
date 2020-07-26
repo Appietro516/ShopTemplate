@@ -2,30 +2,33 @@
 
 Andrew Raftovich
 
-This project is an active working shop with the ability to modify items & view product analytics on an admin panel located on the frontend
+This project is a working shop with the ability to modify items & view product analytics (COMING SOON) on an admin panel located on the frontend
 
 ## Shop routes
 
 | Page      | Route  |
 | ------    | ------ |
 | Home      | /      |
-| Analytics | /dashboard |
-| Edit     | /dashboard/products  |
-| Login    | /dashboard/login     |
-| Logout   | /dashboard/logout    |
-| Checkout | /order/<int: id> |
+| Analytics | /Dashboard |
+| Edit     | /Dashboard/Products  |
+| Login    | /Dashboard/Login     |
+| Logout   | /Dashboard/Logout    |
+| Checkout | /Order/<int: id>     |
+| Complete | /Complete/<int: id>  |
 
 ## RESTful API routes
-
+   
 | Function | Route |
 | ------ | ------ |
 | `GET` all products | /products |
 | `GET` a single product | /products/<int: id> |
 | `POST` new product | /products/new |
 | `PUT` `DELETE` update products | /products/<int: id>/update  |
+| `POST` admin login | /login |
+| `POST` customer login | /customer |
+| `POST` purchase   | /purchase  |
 | `POST` make payment | /charge |
 | `GET` check payment | /charge/<charge_id> |
-| `POST` login | /login |
 
 ## Build for development
 

@@ -11,13 +11,14 @@ export default new Vuex.Store({
    ***********************************************/
   state: {
     shoppingCart: [],
-    serverName: 'http://localhost:5000',
+    serverName: `${window.location.protocol}//${window.location.hostname}:5000`,
     jwt: '',
     tokenType: 'Bearer',
   },
   /***********************************************
    *            SESSION STORAGE                  *
    ***********************************************/
+  // sessionStorage is for develop mode only
   plugins: [createPersistedState({
     storage: window.sessionStorage
   })],
@@ -61,13 +62,11 @@ export default new Vuex.Store({
       return axios.post(`${state.serverName}/register`, userData);
     },
     postLogin: function ({ commit, state }, userData) {
-      console.log("post")
       return axios.post(`${state.serverName}/login`, userData)
         .then(res => commit('setToken', { jwt: res.data }))
     },
     setTokenStr: function({ state }, payload) {
       payload.authorization = `${state.tokenType}: ${state.jwt}`;
-      console.log(payload)
     },
     changeProduct: function({ state, dispatch }, {payload, id}) {
       dispatch('setTokenStr', payload);
@@ -84,14 +83,7 @@ export default new Vuex.Store({
     },
     clearToken: function({ state, commit }) {
       commit('clearToken');
-    }
-  },
-  /***********************************************
-   *                GETTERS                      *
-   ***********************************************/
-  getters: {
-    isAuthenticated: function (state) {
-      console.log("jwt: " + state.jwt)
+    }, checkAuthenticated: function({ state }) {
       if (!state.jwt || state.jwt.split('.').length < 3) {
         return false;
       }
@@ -99,6 +91,6 @@ export default new Vuex.Store({
       const exp = new Date(data.exp * 1000);
       const now = new Date();
       return now < exp;
-    },
+    }
   },
 });

@@ -8,13 +8,22 @@ import database.Orders as Orders
 import database.OrderDetails as OrderDetails
 import stripe
 import settings
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
+# Limit amount of calls made by a user
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 #***************************************************
 #              CHECKOUT ROUTES                     *
 #***************************************************
 
 @app.route('/customer', methods=['POST'])
+@limiter.limit("5/minute")
 def get_details():
     data = request.get_json()
     email = data.get('email')
@@ -133,6 +142,7 @@ def create_charge():
 
 
 @app.route('/charge/<charge_id>', methods=['GET'])
+@limiter.exempt
 def get_charge(charge_id):
     stripe.api_key = settings.STRIPE_KEY
     response_object = {

@@ -2,8 +2,6 @@ from database.Models import db
 import settings
 import datetime
 
-
-
 class OrderDetail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, unique=False)

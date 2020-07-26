@@ -2,8 +2,6 @@ from database.Models import db
 import settings
 import datetime
 
-
-
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, unique=False)

@@ -10,12 +10,21 @@ from datetime import datetime, timedelta
 import jwt
 import settings
 from functools import wraps
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# Limit amount of calls made by a user
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 #***************************************************
 #              AUTHENTICATION                      *
 #***************************************************
 
-def token_required(f):
+def login_required(f):
     @wraps(f)
     def _verify(*args, **kwargs):
         auth_headers = request.json['authorization'].split()
@@ -50,8 +59,8 @@ def token_required(f):
 #***************************************************
 #              AUTHENTICATE USER                   *
 #***************************************************
-
 @app.route('/login', methods=['POST'])
+@limiter.limit("5/minute")
 def login():
     data = request.get_json()
     user = Users.authenticateUser(**data)
@@ -76,7 +85,7 @@ def login():
 #***************************************************
   
 @app.route('/products/new', methods=['POST'])
-@token_required
+@login_required
 def upload_product():
     name = request.json['name']
     price = request.json['price']
@@ -93,7 +102,7 @@ def upload_product():
 
 
 @app.route('/products/<int:id>/update', methods=['PUT', 'DELETE'])
-@token_required
+@login_required
 def update_product(id):
     if request.method == 'PUT':
         name = request.json.get('name', None)
