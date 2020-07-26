@@ -16,7 +16,7 @@
         >
           {{ message }}
         </b-alert>
-        <b-alert 
+        <b-alert
           :show="showErrorMessage"
           variant="danger"
         >
@@ -225,8 +225,7 @@ export default {
           this.products = res.data.products;
         })
         .catch((error) => {
-          this.showErrorMessage = true;
-          this.errorMessage = error.response.data.message;
+          this.displayError(error.response.data.message);
         });
     },
     addProduct(payload) {
@@ -237,8 +236,7 @@ export default {
           this.showMessage = true;
         })
         .catch((error) => {
-          this.errorMessage = error.response.data.message;
-          this.showErrorMessage = true;
+          this.displayError(error.response.data.message);
           this.getProducts();
         });
     },
@@ -253,6 +251,16 @@ export default {
       this.editForm.price = '';
       this.editForm.description = '';
       this.editForm.image = '';
+    },
+    displaySuccess(message) {
+      this.message = message;
+      this.showMessage = true;
+      setTimeout(() => this.showMessage = false, 2000);
+    },
+    displayError(message) {
+      this.errorMessage = message;
+      this.showErrorMessage = true;
+      setTimeout(() => this.showErrorMessage = false, 2000);
     },
     onSubmit(evt) {
       evt.preventDefault();
@@ -291,12 +299,10 @@ export default {
       this.changeProduct({ payload, id})
         .then(() => {
           this.getProducts();
-          this.message = 'Product updated!';
-          this.showMessage = true;
+          this.displaySuccess('Product updated');
         })
         .catch((error) => {
-          this.errorMessage = error.response.data.message;
-          this.showErrorMessage = true;
+          this.displayError(error.response.data.message);
           this.getProducts();
         });
     },
@@ -310,12 +316,10 @@ export default {
       this.deleteProduct(id) 
         .then(() => {
           this.getProducts();
-          this.message = 'Product removed!';
-          this.showMessage = true;
+          this.displaySuccess('Product removed');
         })
         .catch((error) => {
-          this.errorMessage = error.response.data.message;
-          this.showErrorMessage = true;
+          this.displayError(error.response.data.message);
           this.getProducts();
         });
     },

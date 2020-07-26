@@ -1,5 +1,5 @@
-from database.Models import db  
-import settings  
+from database.Models import db
+import settings
 
 '''
     Represents a single product
