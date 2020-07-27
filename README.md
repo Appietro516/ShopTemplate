@@ -2,7 +2,7 @@
 
 Andrew Raftovich
 
-This project is a working shop with the ability to modify items, view product analytics, and view orders (COMING SOON) on an admin panel
+This shop template was built to be used to help set up a working shop with little to no work on the backend and a focus on frontend design for a quick deployment. This site uses a database designed to fit most potential products and a full admin panel to modify products, view & update orders, and analytical data about sales.
 
 ## Shop routes
 
@@ -35,11 +35,10 @@ This project is a working shop with the ability to modify items, view product an
 ## TODO
 
 - [ ] Remove ability to delete products and set a product toggle
-* Purchase products that contain enabled property
-* set to disabled when stock hits 0
-* ability to toggle product on admin panel
-* setup product quantity to api
-
+  - Purchase products that contain enabled property
+  - set to disabled when stock hits 0
+  - ability to toggle product on admin panel
+  - setup product quantity to api
 - [ ] combine API purchase and charge routes
 - [ ] Develop scripts to access analytics, cost & orders per day/month/year
 - [ ] Ability to hold multiple images in database w/ primary image
@@ -47,9 +46,8 @@ This project is a working shop with the ability to modify items, view product an
 - [ ] Build storefront
 - [ ] Develop cart component
 - [ ] Build order page
-* Customer checkout form
-* returning customer form w/ login
-
+  - Customer checkout form
+  - returning customer form w/ login
 - [ ] Improve admin login page
 - [ ] customer order status script by id
 - [ ] Order info page
@@ -60,7 +58,7 @@ This project is a working shop with the ability to modify items, view product an
 Future tasks:
 - [ ] Deploy to Heroku
 - [ ] Email server
-* Flask email templates w/ order updates
+  - Flask email templates w/ order updates
 
 ## Build for development
 
@@ -88,7 +86,7 @@ Future tasks:
 
 ## First time setup
 
-Recommended Software:
+Recommended development software:
 - [pgAdmin 4](https://www.postgresql.org/)
 - [Postman](https://www.postman.com/)
 
@@ -98,14 +96,7 @@ Recommended Software:
 
 ## Built with
 
-[Flask](https://flask.palletsprojects.com/en/1.1.x/), 
-[Vue.js](https://vuejs.org/), 
-[Postgresql]((https://www.postgresql.org/))
-
-## Payment manager
-
-[Stripe](https://stripe.com/)
-
-### Code foundation
-
-[This tutorial](https://testdriven.io/blog/accepting-payments-with-stripe-vuejs-and-flask/) was used for setting up shop payments, & a basic working flask and vue.js servers.
+- [Flask](https://flask.palletsprojects.com/en/1.1.x/),
+- [Vue.js](https://vuejs.org/)
+- [Postgresql](https://www.postgresql.org/)
+- [Stripe](https://stripe.com/)
