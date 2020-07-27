@@ -15,11 +15,10 @@ class Order(db.Model):
         self.purchased_items = ';'.join(str(x) for x in items)
         self.status = 0
 
-    @property
     def items(self):
-        return [int(x) for x in self._purchased_items.split(';')]
+        return [int(x) for x in self.purchased_items.split(';')]
 
-    def status_string(self):
+    def getStatus(self):
         status_dict = {
             0: 'in progress',
             1: 'shipping',
@@ -35,3 +34,12 @@ def new(customer, items):
     db.session.add(order)
     db.session.commit()
     return order.id
+
+
+def getAll():
+    return Order.query.all()
+
+def getProducts(id):
+    order = Order.query.get(id)
+
+    return order.items()

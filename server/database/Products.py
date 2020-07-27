@@ -11,6 +11,7 @@ class Product(db.Model):
     description = db.Column(db.String(255), unique=False)
     image = db.Column(db.String(100), unique=False)
     quantity = db.Column(db.Integer, unique=False)
+    #valid_product = db.Column(db.Boolean, unique=False)
 
     def __init__(self, name, price, description, image):
         self.name = name

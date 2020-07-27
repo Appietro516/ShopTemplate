@@ -30,6 +30,36 @@ This project is a working shop with the ability to modify items & view product a
 | `POST` make payment | /charge |
 | `GET` check payment | /charge/<charge_id> |
 
+## TODO
+
+[ ] Remove ability to delete products and set a product toggle
+* Purchase products that contain enabled property
+* set to disabled when stock hits 0
+* ability to toggle product on admin panel
+* setup product quantity to api
+
+[ ] combine API purchase and charge routes
+[ ] Develop scripts to access analytics, cost & orders per day/month/year
+[ ] Ability to hold multiple images in database w/ primary image
+[ ] Build analtyics panel
+[ ] Build storefront
+[ ] Develop cart component
+[ ] Build order page
+* Customer checkout form
+* returning customer form w/ login
+
+[ ] Improve admin login page
+[ ] customer order status script by id
+[ ] Order info page
+[ ] Fix api purchase route to save product name in table instead of id
+[ ] Test and Fix database first time setup to include admin user credentials
+[ ] Set up database foreign key between orders and customers
+
+Future tasks:
+[ ] Deploy to Heroku
+[ ] Email server
+* Flask email templates w/ order updates
+
 ## Build for development
 
 1. Run the server-side Flask app in one terminal window:
@@ -54,7 +84,17 @@ This project is a working shop with the ability to modify items & view product a
 
     Navigate to [http://localhost:8080](http://localhost:8080)
 
-## Build with
+## First time setup
+
+Recommended Software:
+- [pgAdmin 4](https://www.postgresql.org/)
+- [Postman](https://www.postman.com/)
+
+1. setup a PostgreSQL database
+2. Setup a stripe account and get a stripe payment secret_key
+3. Set environment variables in a .env file according to server/settings.py
+
+## Built with
 
 Flask, Vue.js, Postgresql
 
@@ -64,4 +104,4 @@ Flask, Vue.js, Postgresql
 
 ### Code foundation
 
-Server setup is from [this tutorial](https://testdriven.io/blog/accepting-payments-with-stripe-vuejs-and-flask/) for setting up shop payments, & a working flask and vue.js servers.
+[This tutorial](https://testdriven.io/blog/accepting-payments-with-stripe-vuejs-and-flask/) was used for setting up shop payments, & a basic working flask and vue.js servers.

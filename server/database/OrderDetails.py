@@ -24,3 +24,6 @@ def new(product, quantity, cost):
     db.session.commit()
 
     return order_detail.id
+
+def get(id):
+    return OrderDetail.query.get(id)

@@ -6,8 +6,18 @@ import database.User as Users
 import database.Customers as Customers
 import database.Orders as Orders
 import database.OrderDetails as OrderDetails
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# Limit amount of calls made by a user
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 @app.route('/products', methods=['GET'])
+@limiter.exempt
 def get_products():
     try:
         response_object = {
@@ -43,6 +53,7 @@ def get_products():
 
 
 @app.route('/products/<int:id>', methods=['GET'])
+@limiter.exempt
 def get_product(id):
     try:
         product = Products.get(id)

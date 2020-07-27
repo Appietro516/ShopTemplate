@@ -5,6 +5,7 @@ import Order from './components/Order.vue';
 import OrderComplete from './components/OrderComplete.vue'
 import Dashboard from './components/admin/Dashboard.vue'
 import ProductManager from './components/admin/ProductManager.vue'
+import OrderManager from './components/admin/OrderManager.vue'
 import NotFound from './components/404.vue'
 import Login from './components/admin/Login.vue'
 import store from '@/store/index'
@@ -39,6 +40,11 @@ const router = new Router({
       path:'/Dashboard/Products',
       name: 'Edit',
       component: ProductManager,
+    },
+    {
+      path: '/Dashboard/Orders',
+      name: 'OrderManager',
+      component: OrderManager,
     },
     {
       path:'/Dashboard/Login',

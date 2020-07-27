@@ -6,7 +6,7 @@
         crossorigin="anonymous">
     <sidebar-menu :menu="menu" width="180px" :collapsed="true" />
     <div>
-      <h1>Dashboard</h1>
+      <h1>Orders</h1>
       <hr><br><br>
     </div>
   </div>

@@ -1,65 +1,68 @@
 <template>
-  <div class="container">
+  <div class="wrapper container">
     <link rel="stylesheet" 
         href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" 
         integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" 
         crossorigin="anonymous">
-    <sidebar-menu :menu="menu" width="180px" :hideToggle="true" />
-    <h1>Products</h1>
-    <hr><br><br>
-    <div class="row">
-      
-      <div class="col-sm-10">
-        <b-alert
-          :show="showMessage"
-          variant="success"
-        >
-          {{ message }}
-        </b-alert>
-        <b-alert
-          :show="showErrorMessage"
-          variant="danger"
-        >
-          {{ errorMessage }}
-        </b-alert>
-        <button type="button" class="btn btn-success btn-sm" v-b-modal.product-modal>Add Product</button>
-        <br><br>
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th v-for="key in productKeys" v-bind:key="key.name">
-                {{ key.name }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(product, index) in products" :key="index">
-              <td>{{ product.name }}</td>
-              <td>{{ product.description }}</td>
-              <td>${{ product.price }}</td>
-              <td><img 
-                    v-bind:src="product.image"
-                    :style="{ height: '50px', width: '80px' }"
-                  />
-              </td>
-              <td>
-                <div class="btn-group" role="group">
+    <sidebar-menu :menu="menu" width="180px" :collapsed="true" />
+    <div>
+      <h1>Products</h1>
+      <hr><br>
+      <div class="row">
+        
+        <div class="col-sm-10">
+          <b-alert
+            :show="showMessage"
+            variant="success"
+          >
+            {{ message }}
+          </b-alert>
+          <b-alert
+            :show="showErrorMessage"
+            variant="danger"
+          >
+            {{ errorMessage }}
+          </b-alert>
+          <button type="button" class="btn btn-success" v-b-modal.product-modal>Add Product</button>
+          <br><br>
+          <table class="table table-hover table-striped">
+            <thead>
+              <tr>
+                <th v-for="key in tableKeys" v-bind:key="key">
+                  {{ key }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(product, index) in products" v-bind:key="index">
+                <td>{{ product.id }}</td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.description }}</td>
+                <td>${{ product.price }}</td>
+                <td><img 
+                      v-bind:src="product.image"
+                      :style="{ height: '50px', width: '80px' }"
+                    />
+                </td>
+                <td>
                   <button type="button"
-                          class="btn btn-warning btn-sm"
+                          class="btn btn-warning"
                           v-b-modal.product-update-modal
                           @click="editProduct(product)">
                       Update
                   </button>
+                </td>
+                <td>
                   <button type="button"
-                          class="btn btn-danger btn-sm"
+                          class="btn btn-danger"
                           @click="onDeleteProduct(product)">
                       Delete
                   </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
     <!-- add product modal -->
@@ -152,16 +155,22 @@ export default {
           icon: 'fas fa-chart-line',
         },
         {
-          href: '/Dashboard/products',
+          href: '/Dashboard/Products',
           title: 'Products',
           icon: 'far fa-edit',
         },
         {
-          href: '/dashboard/logout',
+          href: '/Dashboard/Orders',
+          title: 'Orders',
+          icon: 'fas fa-tasks',
+        },
+        {
+          href: '/Dashboard/Logout',
           title: 'Logout',
           icon: 'fas fa-sign-out-alt',
         },
       ],
+      tableKeys: ['ID', 'Name', 'Description', 'Price', 'Image', 'Update', 'Delete'],
       productKeys: [
         {
           'name': 'name',
@@ -210,7 +219,6 @@ export default {
   },
   computed: {
     ...mapState(['serverName']),
-    
   },
   methods: {
     ...mapActions([

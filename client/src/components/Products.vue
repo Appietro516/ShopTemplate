@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col-sm-10">
         <h1>Products</h1>
-        <a href="/dashboard">Dashboard</a>
+        <a href="/Dashboard">Dashboard</a>
         <hr><br><br>
         <br><br>
         <table class="table table-hover">

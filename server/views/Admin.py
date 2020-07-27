@@ -148,3 +148,49 @@ def update_product(id):
             'message': 'item was deleted from table'
         }
         return jsonify(response_object), 200
+
+
+@app.route('/products/orders', methods=['GET'])
+@login_required
+def get_orders():
+    orders_dict = {
+            'status': 'success',
+            'orders': [],
+        }
+    orders = Orders.getAll()
+
+    if not orders:
+        response_object = {
+            'status': 'success',
+            'message': 'No content available'
+        }
+        return jsonify(response_object), 204
+
+    for order in orders:
+
+        single_order_dict = {
+            'id': order.id,
+            'products': [],
+            'cost': 0.0,
+            'customer': Customers.get_shipment_info(order.customer_id),
+            'dateCreated': order.datetimecreated,
+            'status': order.getStatus(),
+            'tracking code': order.tracking_website
+        }
+
+        for id in Orders.getProducts(order.id):
+            item = OrderDetails.get(id)
+            single_order_dict['cost'] = item.item_cost*item.quantity + single_order_dict['cost']
+            product = Products.get(item.product_id)
+
+            item_dict = {
+                'product': product.name if product else 'DELETED PRODUCT',
+                'quantity': item.quantity,
+                'price': item.item_cost
+            }
+
+            single_order_dict['products'].append(item_dict)
+        
+        orders_dict['orders'].append(single_order_dict)
+
+    return jsonify(orders_dict), 200

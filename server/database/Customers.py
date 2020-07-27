@@ -74,6 +74,23 @@ def get_customer_info(email, password):
             'phoneNumber': customer.phone_number
         }
         return data
+    return 'NO CUSTOMER DATA'
+
+def get_shipment_info(id):
+    customer = Customer.query.get(id)
+    data = {
+        'firstName': customer.first_name,
+        'lastName': customer.last_name,
+        'email': customer.email,
+        'address': customer.address,
+        'appartment': customer.appartment,
+        'city': customer.city,
+        'state': customer.state,
+        'country': customer.country,
+        'zipCode': customer.zip_code,
+        'phoneNumber': customer.phone_number
+    }
+    return data
 
 def get_customer_id(email, password):
     if is_authenticated(email, password):
