@@ -2,7 +2,7 @@
 
 Andrew Raftovich
 
-This project is a working shop with the ability to modify items & view product analytics (COMING SOON) on an admin panel located on the frontend
+This project is a working shop with the ability to modify items, view product analytics, and view orders (COMING SOON) on an admin panel
 
 ## Shop routes
 
@@ -11,6 +11,7 @@ This project is a working shop with the ability to modify items & view product a
 | Home      | /      |
 | Analytics | /Dashboard |
 | Edit     | /Dashboard/Products  |
+| Orders   | /Dashboard/Orders    |
 | Login    | /Dashboard/Login     |
 | Logout   | /Dashboard/Logout    |
 | Checkout | /Order/<int: id>     |
@@ -19,45 +20,46 @@ This project is a working shop with the ability to modify items & view product a
 ## RESTful API routes
    
 | Function | Route |
-| ------ | ------ |
+| ------ | ------  |
 | `GET` all products | /products |
 | `GET` a single product | /products/<int: id> |
 | `POST` new product | /products/new |
 | `PUT` `DELETE` update products | /products/<int: id>/update  |
-| `POST` admin login | /login |
+| `GET` customer orders | /products/orders |
+| `POST` admin login | /login  |
 | `POST` customer login | /customer |
 | `POST` purchase   | /purchase  |
-| `POST` make payment | /charge |
+| `POST` make payment | /charge  |
 | `GET` check payment | /charge/<charge_id> |
 
 ## TODO
 
-[ ] Remove ability to delete products and set a product toggle
+- [ ] Remove ability to delete products and set a product toggle
 * Purchase products that contain enabled property
 * set to disabled when stock hits 0
 * ability to toggle product on admin panel
 * setup product quantity to api
 
-[ ] combine API purchase and charge routes
-[ ] Develop scripts to access analytics, cost & orders per day/month/year
-[ ] Ability to hold multiple images in database w/ primary image
-[ ] Build analtyics panel
-[ ] Build storefront
-[ ] Develop cart component
-[ ] Build order page
+- [ ] combine API purchase and charge routes
+- [ ] Develop scripts to access analytics, cost & orders per day/month/year
+- [ ] Ability to hold multiple images in database w/ primary image
+- [ ] Build analtyics panel
+- [ ] Build storefront
+- [ ] Develop cart component
+- [ ] Build order page
 * Customer checkout form
 * returning customer form w/ login
 
-[ ] Improve admin login page
-[ ] customer order status script by id
-[ ] Order info page
-[ ] Fix api purchase route to save product name in table instead of id
-[ ] Test and Fix database first time setup to include admin user credentials
-[ ] Set up database foreign key between orders and customers
+- [ ] Improve admin login page
+- [ ] customer order status script by id
+- [ ] Order info page
+- [ ] Fix api purchase route to save product name in table instead of id
+- [ ] Test and Fix database first time setup to include admin user credentials
+- [ ] Set up database foreign key between orders and customers
 
 Future tasks:
-[ ] Deploy to Heroku
-[ ] Email server
+- [ ] Deploy to Heroku
+- [ ] Email server
 * Flask email templates w/ order updates
 
 ## Build for development
@@ -96,7 +98,9 @@ Recommended Software:
 
 ## Built with
 
-Flask, Vue.js, Postgresql
+[Flask](https://flask.palletsprojects.com/en/1.1.x/), 
+[Vue.js](https://vuejs.org/), 
+[Postgresql]((https://www.postgresql.org/))
 
 ## Payment manager
 
